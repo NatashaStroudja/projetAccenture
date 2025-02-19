@@ -8,6 +8,7 @@ import com.accenture.service.dto.TacheRequestDto;
 import com.accenture.service.dto.TacheResponseDto;
 import com.accenture.service.mapper.TacheMapper;
 import jakarta.persistence.EntityNotFoundException;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -122,7 +123,7 @@ class TacheServiceImplTest {
     }
     @DisplayName("si ajouter(null) exception levee, si la tache n'est pas nulle ca veut dire")
     @Test
-    void testAjouteTacheNullr(){
+    void testAjouteTacheNull(){
         assertThrows(TacheException.class, ()->service.ajouter(null));
     }
 
@@ -151,6 +152,7 @@ class TacheServiceImplTest {
     @Test
     void testAjouterTachePrioriteNull(){
         TacheRequestDto tacheRequestDto=new TacheRequestDto("acheter", LocalDate.now(), null,true);
+
         assertThrows(TacheException.class, ()->service.ajouter(tacheRequestDto));
     }
     @DisplayName("termine nulle")
@@ -180,5 +182,74 @@ class TacheServiceImplTest {
         assertSame(responseDto, service.ajouter(tacheRequestDto));// on regarde si on a sauvgardé la tacheRequesteDto
         Mockito.verify(daoMock, Mockito.times(1)).save(tacheAvantEnreg);//on regarde si la methode save a ete applee 1 fois
     }
+
+    @DisplayName("Test de la methode modifier(int id) qui doit renvoyer une exception lors que la tache n'existe pas")
+    @Test
+    void testTacheAModifierExistePas() {
+        Mockito.when(daoMock.existsById(50)).thenReturn(false);
+        TacheRequestDto tacheRequestDto=new TacheRequestDto("acheter", LocalDate.now(), Priorite.BAS,true);
+        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () -> service.modifier(50, tacheRequestDto));
+        Assertions.assertEquals("Id non present!", ex.getMessage());
+    }
+    @DisplayName("si la tache à modifier est null")
+    @Test
+    void testModifierTacheNull(){
+        Mockito.when(daoMock.existsById(1)).thenReturn(true);
+        assertThrows(TacheException.class, ()->service.modifier(1, null));
+    }
+    @DisplayName("si le libelle à modifier est null")
+    @Test
+    void testModifierLibelleNull(){
+        Mockito.when(daoMock.existsById(1)).thenReturn(true);
+        TacheRequestDto tacheRequestDto = new TacheRequestDto(null, LocalDate.of(2024,8,12), Priorite.HAUT,true);
+        assertThrows(TacheException.class, ()->service.modifier(1,tacheRequestDto));
+    }
+    @DisplayName("si la date local à modifier est null")
+    @Test
+    void testModifierLocalDateNull(){
+        Mockito.when(daoMock.existsById(1)).thenReturn(true);
+        TacheRequestDto tacheRequestDto = new TacheRequestDto("manger", null, Priorite.HAUT,true);
+        assertThrows(TacheException.class, ()->service.modifier(1,tacheRequestDto));
+    }
+
+    @DisplayName("si la date local à modifier est null")
+    @Test
+    void testModifierPrioriteNull(){
+        Mockito.when(daoMock.existsById(1)).thenReturn(true);
+        TacheRequestDto tacheRequestDto = new TacheRequestDto("manger", LocalDate.of(2024,8,12), null,true);
+        assertThrows(TacheException.class, ()->service.modifier(1,tacheRequestDto));
+    }
+
+    @DisplayName("si la termine à modifier est null")
+    @Test
+    void testModifierTermineNull(){
+        Mockito.when(daoMock.existsById(1)).thenReturn(true);
+        TacheRequestDto tacheRequestDto = new TacheRequestDto("manger", LocalDate.of(2024,8,12), Priorite.BAS,null);
+        assertThrows(TacheException.class, ()->service.modifier(1,tacheRequestDto));
+    }
+
+
+    @DisplayName("""
+    si modifier (id, TacheRequesteDto ok), alors save est appelee et un tacheResponseDto est renvoiee
+""")
+    @Test
+    void testModifier() {
+        TacheRequestDto tacheRequestDto = new TacheRequestDto("promener le chien", LocalDate.of(2024, 8, 12), Priorite.HAUT, true);
+        Tache tacheAvantEnreg = creeTachePromenade();
+        tacheAvantEnreg.setId(0);
+
+        Tache tacheApresEnreg = creeTachePromenade();
+        TacheResponseDto responseDto = creeTacheResponseDtoPromener();//ce sont objets avec lesquelles je veux travailler
+
+        Mockito.when(mapperMock.toTache(tacheRequestDto)).thenReturn(tacheAvantEnreg);//on envoie tacheAvant Reg quand elle est applee
+        Mockito.when(daoMock.save(tacheAvantEnreg)).thenReturn(tacheApresEnreg);
+        Mockito.when(mapperMock.toTacheResponseDto(tacheApresEnreg)).thenReturn(responseDto);
+
+//same si c'est le meme espace memoire, et equals si c'est la meme valeur "Joe"
+        Mockito.when(daoMock.existsById(1)).thenReturn(true);
+        assertSame(responseDto, service.modifier(1, tacheRequestDto));// on regarde si on a sauvgardé la tacheRequesteDto
+        Mockito.verify(daoMock, Mockito.times(1)).save(tacheAvantEnreg);//on regarde si la methode save a ete applee 1 fois
+    }
+
 
 }

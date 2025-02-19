@@ -58,8 +58,8 @@ public class TacheServiceImpl implements TacheService {
 
 
     @Override
-    public TacheResponseDto modifier(int id, TacheRequestDto tacheRequestDto) throws TacheException {
-        if (!tacheDao.existsById(id))//on verifie si id existe pour modofier
+    public TacheResponseDto modifier(int id, TacheRequestDto tacheRequestDto) throws TacheException, EntityNotFoundException {
+        if (!tacheDao.existsById(id))//on verifie si id existe pour modifier
             throw new EntityNotFoundException(ID_NON_PRESENT);
         verifierTache(tacheRequestDto);
         Tache tache = tacheMapper.toTache(tacheRequestDto);
@@ -111,7 +111,7 @@ public class TacheServiceImpl implements TacheService {
     }
 
     //Méthoes privées
-    private static void verifierTache(TacheRequestDto tacheRequestDto) throws TacheException {
+    private static void verifierTache(TacheRequestDto tacheRequestDto) throws TacheException, EntityNotFoundException {
         if (tacheRequestDto == null)
             throw new TacheException("La tache est nulle");
         if (tacheRequestDto.libelle() == null || tacheRequestDto.libelle().isBlank())
