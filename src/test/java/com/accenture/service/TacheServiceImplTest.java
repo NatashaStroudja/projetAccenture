@@ -172,7 +172,7 @@ class TacheServiceImplTest {
         Tache tacheApresEnreg = creeTachePromenade();
         TacheResponseDto responseDto = creeTacheResponseDtoPromener();//ce sont objets avec lesquelles je veux travailler
 
-        Mockito.when(mapperMock.toTache(tacheRequestDto)).thenReturn(tacheAvantEnreg);
+        Mockito.when(mapperMock.toTache(tacheRequestDto)).thenReturn(tacheAvantEnreg);//on envoie tacheAvant Reg quand elle est applee
         Mockito.when(daoMock.save(tacheAvantEnreg)).thenReturn(tacheApresEnreg);
         Mockito.when(mapperMock.toTacheResponseDto(tacheApresEnreg)).thenReturn(responseDto);
 
